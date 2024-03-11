@@ -1,0 +1,14 @@
+Activating the Azure subscription and installing the PowerShell Az module
+Task 1: Install the Azure Az module for PowerShell
+
+$psversiontable.psversion 
+set-executionpolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+
+ Using Azure Cloud Shell
+Task 1: Use Azure Cloud Shell to create a resource group
+
+Get-AzSubscription
+Get-AzResourceGroup
+az account list
+az resource list
