@@ -1,3 +1,5 @@
+PROJECT 1: 
+
 Activating the Azure subscription and installing the PowerShell Az module
 Task 1: Install the Azure Az module for PowerShell
 
@@ -5,10 +7,115 @@ $psversiontable.psversion
 set-executionpolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
 
- Using Azure Cloud Shell
+Using Azure Cloud Shell
 Task 1: Use Azure Cloud Shell to create a resource group
 
 Get-AzSubscription
 Get-AzResourceGroup
 az account list
 az resource list
+
+Managing Azure Resources with Azure Powershell
+Task 1: Create an Azure VM by using Powershell
+
+$cred = Get-Credential -Message "Enter a username and password for the virtual machine."
+$vmParams = @{
+  ResourceGroupName = 'myRG-EU2GDYG4HN'
+  Name = 'TestVM1'
+  Location = 'eastus'
+  ImageName = 'Win2016Datacenter'
+  PublicIpAddressName = 'TestPublicIp'
+  Credential = $cred
+  OpenPorts = 3389
+}
+$newVM1 = New-AzVM @vmParams
+$NewVM1
+$newVM1.OSProfile | Select-Object ComputerName,AdminUserName
+$newVM1 | Get-AzNetworkInterface | Select-Object -ExpandProperty IpConfigurations | Select-Object Name,PrivateIpAddress
+$publicIp = Get-AzPublicIpAddress -Name TestPublicIp -ResourceGroupName myRG-EU2GDYG4HN
+$publicIp | Select-Object Name,IpAddress,@{label='FQDN';expression={$_.DnsSettings.Fqdn}}
+
+Task 2: Add a disk to the Azure VM by usines PowerShell
+
+$VirtualMachine = Get-AzVM -ResourceGroupName "myRG-EU2GDYG4HN" -Name "TestVM1"
+Add-AzVMDataDisk -VM $VirtualMachine -Name "disk1" -LUN 0 -Caching ReadOnly -DiskSizeinGB 1 -CreateOption Empty
+
+PROJECT 2:
+
+MANAGING MICROSOFT 365 WITH POWERSHELL
+
+Exercise 1: Managing users and groups in Azure AD
+
+Task 1: Connect to Azure AD
+
+Install-module azuread
+connect-azuread
+get-azureaduser
+
+Task 2: Create a new administrative user
+
+$passwordprofile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+$passwordprofile.password = "<hello1$>"
+New-AzureADUser -DisplayName "Noreen Riggs" -UserPrincipalName Noreen@M365x66032364.onmicrosoft.com -AccountEnabled $true -PasswordProfile $PasswordProfile -MailNickName Noreen
+$user = Get-AzureADUser -ObjectID Noreen@M365x66032364.onmicrosoft.com
+$role = Get-AzureADDirectoryRole | Where {$_.displayName -eq 'Global Administrator'}
+Add-AzureADDirectoryRoleMember -ObjectId $role.ObjectId -RefObjectId $user.ObjectID
+Get-AzureADDirectoryRoleMember -ObjectId $role.ObjectId
+
+Task 3: Create and license a new user
+
+New-AzureADUser -DisplayName "Allan Yoo" -UserPrincipalName Allan@M365x66032364.onmicrosoft.com -AccountEnabled $true -PasswordProfile $PasswordProfile -MailNickName Allan
+Set-AzureADUser -ObjectId Allan@M365x66032364.onmicrosoft.com -UsageLocation US
+Get-AzureADSubscribedSku | FL
+$SkuId = (Get-AzureADSubscribedSku | Where SkuPartNumber -eq "ENTERPRISEPREMIUM").SkuID
+$License = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicense
+$License.SkuId = $SkuId
+$LicensesToAssign = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicenses
+$LicensesToAssign.AddLicenses = $License
+Set-AzureADUserLicense -ObjectId Allan@M365x66032364.onmicrosoft.com -AssignedLicenses $LicensesToAssign
+
+Task 4: Create and populate a group
+
+Get-AzureADGroup
+New-AzureADGroup -DisplayName "Sales Security Group" -SecurityEnabled $true -MailEnabled $false -MailNickName "SalesSecurityGroup"
+$group = Get-AzureAdGroup -SearchString "Sales Security"
+$user = Get-AzureADUser -ObjectId Allan@M365x66032364.onmicrosoft.com
+Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $user.ObjectId
+Get-AzureADGroupMember -ObjectId $group.ObjectId
+
+Exercise 2: Managing Exchange Online
+
+Install-Module ExchangeOnlineManagement
+
+Install-Module ExchangeOnlineManagement
+Connect-ExchangeOnline
+Get-EXOMailbox
+
+Task 2: Create a room mailbox
+
+New-Mailbox -Room -Name BoardRoom
+Set-CalendarProcessing BoardRoom -AutomateProcessing AutoAccept
+
+Task 3: Verify room resource booking
+
+Exercise 3: Managing Microsoft Teams
+
+Task 1: Connect to Microsoft Teams
+
+Install-Module MicrosoftTeams
+Connect-MicrosoftTeams
+Get-Team
+
+Task 2: Create a new team
+
+Connect-MicrosoftTeams
+New-Team -DisplayName "Sales Team" -MailNickName "SalesTeam"
+$team = Get-Team -DisplayName "Sales Team"
+$team | FL
+Add-TeamUser -GroupId $team.GroupId -User Allan@M365x66032364.onmicrosoft.com -Role Member
+Get-TeamUser -GroupId $team.GroupId
+
+
+
+
+
