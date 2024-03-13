@@ -1,1 +1,30 @@
+PROJECT 1:  FILE SHARE WEB APPLICATION
 
+# Variables
+$resourceGroupName = "FileShareAppRG"
+$storageAccountName = "filesharewebapp$(Get-Random)"
+$location = "East US"
+$webAppName = "FileShareWebApp$(Get-Random)"
+
+# Create a resource group
+New-AzResourceGroup -Name $resourceGroupName -Location $location
+
+# Create a storage account
+$storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName -Location $location -SkuName "Standard_LRS"
+
+# Create a file share
+$fileShare = New-AzStorageShare -Name "files" -Context $storageAccount.Context
+
+# Generate a SAS token for the file share
+$expiryTime = (Get-Date).AddHours(24)
+$sasToken = New-AzStorageShareSASToken -Context $storageAccount.Context -ExpiryTime $expiryTime -Permission "rwdl" -ShareName $fileShare.Name
+
+# Create an App Service Plan
+$appServicePlan = New-AzAppServicePlan -ResourceGroupName $resourceGroupName -Name "$webAppName-plan" -Location $location -Tier "Free"
+
+# Create a Web App
+$webApp = New-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName -Location $location -AppServicePlan $appServicePlan.Id
+
+# Output the Web App URL and SAS Token
+Write-Host "Web App URL: $($webApp.DefaultHostName)"
+Write-Host "File Share SAS Token: $sasToken"
