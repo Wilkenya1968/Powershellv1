@@ -1,0 +1,18 @@
+# Variables
+$employeeName = "John Doe"
+$employeeEmail = "johndoe@contoso.com"
+$resourceGroupName = "ResourceGroup1"
+$location = "East US"
+$resourceName = "Resource1"
+
+# Create a new user in Azure AD
+New-AzureADUser -DisplayName $employeeName -UserPrincipalName $employeeEmail -AccountEnabled $true
+
+# Assign the user to a group
+Add-AzureADGroupMember -ObjectId "Group1" -RefObjectId (Get-AzureADUser -ObjectId $employeeEmail).ObjectId
+
+# Create a new resource group
+New-AzResourceGroup -Name $resourceGroupName -Location $location
+
+# Create a new resource
+New-AzResource -ResourceName $resourceName -ResourceGroupName $resourceGroupName -ResourceType "Microsoft.Storage/storageAccounts" -Location $location -SkuName "Standard_LRS"
